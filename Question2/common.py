@@ -187,7 +187,7 @@ D_ARCHS = {
     "dil": dict(kernels=(3, 3), dilations=(1, 2)),     # dilated second layer, same size as A
     "p8": dict(patch=8),                               # bigger patch = coarser grid
 }
-D_DEFAULT = "k5"
+D_DEFAULT = "dil"
 
 # name: (speed augmentation, symmetry augmentation); A-C use the baseline architecture.
 MODELS = {"A": (False, False), "B": (False, True), "C": (True, False), "D": (True, False), "DB": (True, True)}
@@ -261,5 +261,9 @@ def inference_time(f, x, batch=32):
 
 
 def fmt(v):
-    """Three significant figures, scientific notation below 1e-3."""
-    return f"{v:.2e}" if v != 0 and abs(v) < 1e-3 else f"{v:.3g}"
+    """Three significant figures (trailing zeros kept), scientific notation below 1e-3."""
+    if v == 0:
+        return "0"
+    if abs(v) < 1e-3:
+        return f"{v:.2e}"
+    return f"{v:#.3g}".rstrip(".")  # '#' keeps trailing zeros: 0.0210, 47.0

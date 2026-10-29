@@ -72,17 +72,20 @@ def write_table(number, caption, columns, rows):
 
 # ---------------------------------------------------------------- video selection
 
-def overlapping(frame):
-    """Heuristic: digits overlap (or touch) when the frame has fewer than two sizeable blobs."""
+def overlapping(frame, margin=0):
+    """Heuristic: digits overlap (or touch) when the frame has fewer than two sizeable blobs.
+    margin > 0 also counts digits closer than about 2 * margin pixels as overlapping."""
     mask = (frame.numpy() > 0.2).astype(np.uint8)
+    if margin:
+        mask = cv2.dilate(mask, np.ones((2 * margin + 1, 2 * margin + 1), np.uint8))
     _, _, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
     return (stats[1:, cv2.CC_STAT_AREA] >= 30).sum() < 2
 
 
-def overlap_count(video, frames):
+def overlap_count(video, frames, margin=0):
     """Number of the given 1-based frames in which the digits overlap."""
     v = to_float(video[:, 0])
-    return sum(overlapping(v[f - 1]) for f in frames)
+    return sum(overlapping(v[f - 1], margin) for f in frames)
 
 
 # ---------------------------------------------------------------- drawing
@@ -110,7 +113,7 @@ def figure2(f, X, Y, videos):
             show(axes[1, h], P[h], f"prediction {h + 6}")
             show(axes[2, h], Y[i, h], f"truth {h + 6}")
         sub.suptitle(f"test video {i} (dataset index {9000 + i})", fontsize=9)
-    fig.suptitle("Figure 2. Model A (seed 0): input, prediction and ground truth", fontsize=10)
+    fig.suptitle("Figure 2. Model A (seed 0): input, prediction and ground truth", fontsize=10, y=1.01)
     save(fig, "fig2_predictions.png")
 
 
@@ -151,8 +154,8 @@ def figure3(f, X, Y, picks, label, number, prefix):
             axes[r, 0].set_ylabel(name, fontsize=7)
         sub.suptitle(f"T = {t}, test video {i} (dataset index {9000 + i})", fontsize=9)
         paths.append(gif(rows, f"{label}, T={t}, video {i}", GIF_DIR / f"{prefix}_{t}_video{i}.gif"))
-    rel = ", ".join(str(p.relative_to(OUT_DIR.parent)) for p in paths)
-    fig.suptitle(f"Figure {number}. {label}: largest per-video consistency gaps.\nGIFs: {rel}", fontsize=9, y=1.02)
+    print("GIFs:", ", ".join(str(p) for p in paths))
+    fig.suptitle(f"Figure {number}. {label}: largest per-video consistency gaps.", fontsize=10, y=1.01)
     save(fig, f"fig{number}_consistency.png")
 
 
@@ -210,14 +213,15 @@ def stress(W):
     write_table(3, "Error and consistency under mirror (M) and rotation (R), 1x, t = 1.", ERRORS, {"A": A} | refs)
     write_table(4, "Faster motion, t = 1.",
                 [("E(2) 1x", "E2_1"), ("E(2) 2x", "E2_2"), ("E(2) 3x", "E2_3"), ("E(5) 1x", "E5"),
-                 ("E(5) 2x", "E5_2")], {"A": A, "Copy-last": refs["Copy-last"]})
+                 ("E(5) 2x", "E5_2")], {"A": A} | refs)
     f, per_video = A[0]["f"], A[0]["per_video"]
     picks = [(t, int(i)) for t in TRANSFORMS for i in per_video[f"C{t}"].topk(2).indices]
     figure3(f, *W[1], picks, "Model A (seed 0)", 3, "fig3")
     figure4(per_video, picks)
     shown = sorted({1 + k * j for k in (1, 2, 3) for j in range(7)})  # inputs + first two targets per speed
     videos = load_videos("test")
-    i = next(i for i, v in enumerate(videos) if overlap_count(v, shown) == 0)
+    # digits at least ~6 px apart in every displayed frame, so the figure is unambiguous
+    i = next(i for i, v in enumerate(videos) if overlap_count(v, shown, margin=3) == 0)
     figure5(f, videos[i], i, "Model A (seed 0)", 5)
     SELECTION.write_text(json.dumps({"fig3": picks, "fig5": i}))
 

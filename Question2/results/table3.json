@@ -17,7 +17,7 @@
       "ER": 0.024366547322520513,
       "params": 480784,
       "train_time": 46.73617811673442,
-      "infer_time": 1.7205277910034056,
+      "infer_time": 1.4260765420040116,
       "reach": 8,
       "hardware": "macOS-15.0-arm64-arm-64bit-Mach-O (mps)"
     },
@@ -38,7 +38,7 @@
       "ER": 0.023393952086409976,
       "params": 480784,
       "train_time": 47.838388688933144,
-      "infer_time": 1.7534918340024888,
+      "infer_time": 1.423267833000864,
       "reach": 8,
       "hardware": "macOS-15.0-arm64-arm-64bit-Mach-O (mps)"
     }
