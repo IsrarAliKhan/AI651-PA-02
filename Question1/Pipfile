@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+torch = "<3,>=2.6"
+numpy = "<3,>=2"
+matplotlib = "<4,>=3.9"
+ipywidgets = "<9,>=8.1"
+ipykernel = "<8,>=6"
+jupyterlab = "<5,>=4"
+
+[dev-packages]
+
+[requires]
+python_version = "3.13"

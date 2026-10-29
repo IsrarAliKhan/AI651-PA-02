@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+torch = "<3,>=2.6"
+torchvision = ">=0.21"
+numpy = "<3,>=2"
+matplotlib = "<4,>=3.9"
+opencv-python-headless = "<5,>=4.10"
+pillow = ">=10"
+ipykernel = "<8,>=6"
+jupyterlab = "<5,>=4"
+
+[dev-packages]
+
+[requires]
+python_version = "3.13"
+python_full_version = "3.13.5"
